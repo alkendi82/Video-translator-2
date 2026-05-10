@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="مترجم فيديو">
+<title>مترجم الفيديو</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Cairo',sans-serif;background:#0d0d12;color:#e8e8f2;min-height:100vh;padding-bottom:75px;-webkit-text-size-adjust:100%}
+.header{padding:13px 16px;background:#13131c;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:9px;font-size:1rem;font-weight:700}
+.logo-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#7c6fff,#ff6b9d);display:flex;align-items:center;justify-content:center}
+.badge{font-size:10px;font-weight:700;background:rgba(124,111,255,0.15);color:#a8a0ff;border:1px solid rgba(124,111,255,0.3);padding:2px 8px;border-radius:999px}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#13131c;border-top:1px solid rgba(255,255,255,0.07);display:flex;z-index:999;padding-bottom:env(safe-area-inset-bottom,0)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 7px;background:none;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:11px;font-weight:600;color:#66667a;transition:color .15s}
+.bnav-btn.on{color:#7c6fff}
+.bnav-btn svg{width:22px;height:22px}
+
+/* PAGES */
+.pg{display:none;padding:14px}
+.pg.on{display:block}
+
+/* CARD */
+.card{background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:18px;margin-bottom:13px;overflow:hidden}
+.card-p{padding:15px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:#0d0d12;border-radius:10px;padding:4px;border:1px solid rgba(255,255,255,0.07);margin-bottom:15px}
+.tab-b{flex:1;padding:9px 4px;border-radius:7px;background:none;border:none;cursor:pointer;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;color:#66667a;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s}
+.tab-b.on{background:#26263a;color:#e8e8f2}
+
+/* TAB CONTENT */
+.tab-pg{display:none}
+.tab-pg.on{display:block}
+
+/* PICK */
+.pick-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.pick{display:flex;flex-direction:column;align-items:center;gap:5px;padding:15px 8px;background:#1e1e2a;border:1px solid rgba(255,255,255,0.07);border-radius:14px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;color:#8888a8;border:none;width:100%;transition:all .15s}
+.pick:active{background:#26263a;color:#e8e8f2;transform:scale(.97)}
+.pick span{font-size:26px}
+
+/* FILE ZONE */
+.fzone{position:relative;border:2px dashed rgba(255,255,255,0.1);border-radius:12px;padding:18px;text-align:center;background:#1e1e2a;cursor:pointer;overflow:hidden}
+.fzone input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:16px}
+.fz-ico{font-size:26px;margin-bottom:5px}
+.fz-t{font-size:13px;font-weight:600;margin-bottom:3px}
+.fz-h{font-size:11px;color:#66667a}
+
+/* PROGRESS */
+.prog{height:4px;background:#26263a;border-radius:999px;margin-top:10px;display:none;overflow:hidden}
+.prog-f{height:100%;background:linear-gradient(90deg,#7c6fff,#ff6b9d);border-radius:999px;width:0;transition:width .3s}
+
+/* PREVIEW */
+.preview{display:none;margin-top:11px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.07)}
+.preview video{width:100%;display:block;background:#000;max-height:200px}
+.preview-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#1e1e2a;font-size:12px;color:#8888a8}
+.preview-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* URL */
+.url-row{display:flex;gap:8px}
+.url-inp{flex:1;background:#0d0d12;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#e8e8f2;font-family:'Cairo',sans-serif;font-size:13px;outline:none;direction:ltr;-webkit-appearance:none}
+.url-inp:focus{border-color:#7c6fff}
+.url-inp::placeholder{color:#44445a}
+
+/* MIC */
+.mic-c{text-align:center;padding:6px 0}
+.mic-ring{width:80px;height:80px;border-radius:50%;background:#1e1e2a;border:2px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;cursor:pointer;transition:all .2s}
+.mic-ring:active{transform:scale(.94)}
+.mic-ring.on{background:rgba(124,111,255,0.2);border-color:#7c6fff;animation:mpulse 1.5s infinite}
+@keyframes mpulse{0%,100%{box-shadow:0 0 0 0 rgba(124,111,255,.3)}50%{box-shadow:0 0 0 14px rgba(124,111,255,0)}}
+.mic-lbl{font-size:14px;font-weight:600;margin-bottom:4px}
+.mic-hint{font-size:12px;color:#66667a}
+
+/* LANGS */
+.lg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}
+.lbl{display:block;font-size:11px;font-weight:700;color:#66667a;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+select{width:100%;background:#0d0d12;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:9px 10px;color:#e8e8f2;font-family:'Cairo',sans-serif;font-size:13px;-webkit-appearance:none;outline:none;cursor:pointer}
+select:focus{border-color:#7c6fff}
+
+/* BTN START */
+.btn-go{width:100%;margin-top:13px;background:linear-gradient(135deg,#7c6fff,#a855f7);color:white;border:none;border-radius:14px;padding:14px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 24px rgba(124,111,255,.3);transition:all .15s}
+.btn-go:active{transform:scale(.97)}
+
+/* PLAYER */
+.player{display:none;background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:18px;overflow:hidden;margin-bottom:13px}
+.player.on{display:block}
+.vid-wrap{position:relative;background:#000}
+.vid-wrap video{width:100%;display:block;max-height:240px}
+.vid-wrap iframe{width:100%;aspect-ratio:16/9;display:block;border:none}
+.sub-ov{position:absolute;bottom:8px;left:0;right:0;text-align:center;pointer-events:none}
+.sub-t{display:none;background:rgba(0,0,0,.88);color:#fff;font-size:13px;font-weight:500;padding:5px 12px;border-radius:7px;max-width:90%;display:inline-block;line-height:1.4}
+.sub-tr{display:block;color:#a8a0ff;font-size:.88em;margin-top:2px}
+.p-acts{display:flex;gap:7px;padding:9px 12px;border-top:1px solid rgba(255,255,255,0.07);overflow-x:auto}
+.p-acts::-webkit-scrollbar{display:none}
+
+/* SMALL BTN */
+.bsm{background:#1e1e2a;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px 13px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;color:#8888a8;cursor:pointer;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.bsm:active{background:#26263a;color:#e8e8f2}
+
+/* TRANSCRIPT */
+.t-card{display:none;background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:18px;overflow:hidden;margin-bottom:13px}
+.t-card.on{display:block}
+.t-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.t-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+.ldot{width:8px;height:8px;border-radius:50%;background:#7c6fff;animation:ldot 1.5s infinite;display:none}
+@keyframes ldot{0%,100%{opacity:1}50%{opacity:.3}}
+.t-list{max-height:270px;overflow-y:auto}
+.t-list::-webkit-scrollbar{display:none}
+.t-empty{text-align:center;padding:28px 16px;color:#44445a;font-size:13px}
+.t-item{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer}
+.t-item:last-child{border-bottom:none}
+.t-item:active{background:rgba(124,111,255,.08)}
+.t-time{font-size:11px;font-weight:700;color:#7c6fff;white-space:nowrap;margin-top:2px;font-variant-numeric:tabular-nums}
+.t-orig{font-size:12px;color:#66667a;margin-bottom:2px;line-height:1.4}
+.t-tran{font-size:14px;color:#e8e8f2;line-height:1.5}
+
+/* SETTINGS */
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.s-row:last-child{border-bottom:none}
+.s-t{font-size:14px;font-weight:600}
+.s-d{font-size:12px;color:#66667a;margin-top:2px}
+.tog{width:46px;height:26px;border-radius:999px;background:#26263a;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.tog.on{background:#7c6fff}
+.tog::after{content:'';position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:white;transition:transform .2s}
+.tog.on::after{transform:translateX(-20px)}
+
+/* INSTALL */
+.inst{background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:18px;padding:20px 16px;text-align:center;margin-bottom:13px}
+.inst-icon{font-size:36px;margin-bottom:10px}
+.inst-t{font-size:16px;font-weight:700;margin-bottom:6px}
+.inst-d{font-size:13px;color:#66667a;line-height:1.6;margin-bottom:14px}
+.inst-steps{text-align:right}
+.inst-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.snum{width:24px;height:24px;border-radius:50%;background:#7c6fff;color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stxt{font-size:13px;line-height:1.5;padding-top:3px}
+
+/* STATUS */
+.status{display:none;align-items:center;gap:10px;background:#16161f;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:11px 14px;margin-bottom:13px;font-size:13px;color:#8888a8}
+.status.on{display:flex}
+.spin{width:18px;height:18px;border:2px solid #26263a;border-top-color:#7c6fff;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.tbox{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;display:flex;flex-direction:column;gap:5px;align-items:center}
+.toast{background:#1e1e2a;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:8px 18px;font-size:13px;font-weight:600;color:#e8e8f2;box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:nowrap;animation:tup .25s ease-out,tfade .25s ease-in 2.75s forwards}
+.toast.ok{color:#4ade80;border-color:rgba(74,222,128,.25)}
+.toast.err{color:#f87171;border-color:rgba(248,113,113,.25)}
+.toast.warn{color:#fbbf24;border-color:rgba(251,191,36,.25)}
+@keyframes tup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tfade{from{opacity:1}to{opacity:0}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    </div>
+    مترجم الفيديو
+  </div>
+  <span class="badge">AI</span>
+</div>
+
+<!-- ████ HOME ████ -->
+<div class="pg on" id="pg-home">
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-p">
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-b on" id="tb-video" onclick="switchTab('video')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>فيديو
+        </button>
+        <button class="tab-b" id="tb-yt" onclick="switchTab('yt')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.54C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>يوتيوب
+        </button>
+        <button class="tab-b" id="tb-mic" onclick="switchTab('mic')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>مباشر
+        </button>
+      </div>
+
+      <!-- VIDEO TAB -->
+      <div class="tab-pg on" id="tpg-video">
+        <div class="pick-row">
+          <button class="pick" onclick="trigCam()"><span>📷</span>الكاميرا</button>
+          <button class="pick" onclick="trigGal()"><span>🖼️</span>المعرض</button>
+        </div>
+        <div class="fzone">
+          <input type="file" accept="video/*,audio/*" id="fi0" onchange="onFile(this)">
+          <div class="fz-ico">📂</div>
+          <div class="fz-t">أو اضغط لاختيار ملف</div>
+          <div class="fz-h">MP4 · MOV · M4V</div>
+        </div>
+        <div class="prog" id="prog"><div class="prog-f" id="progf"></div></div>
+        <div class="preview" id="pvbox">
+          <div class="vid-wrap"><video id="pvvid" controls playsinline webkit-playsinline muted></video></div>
+          <div class="preview-bar">
+            <span>🎬</span>
+            <span class="preview-name" id="pvname"></span>
+            <button class="bsm" onclick="resetVid()">تغيير</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- YT TAB -->
+      <div class="tab-pg" id="tpg-yt">
+        <div class="url-row">
+          <input class="url-inp" type="url" id="yti" placeholder="https://youtube.com/watch?v=...">
+          <button class="bsm" style="padding:11px 16px;font-size:13px" onclick="loadYT()">تحميل</button>
+        </div>
+        <p style="font-size:11px;color:#44445a;margin-top:7px">الصق رابط يوتيوب وسيعمل مع الترجمة المدمجة</p>
+      </div>
+
+      <!-- MIC TAB -->
+      <div class="tab-pg" id="tpg-mic">
+        <div class="mic-c">
+          <div class="mic-ring" id="micring" onclick="toggleMic()">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#7c6fff" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
+          <div class="mic-lbl" id="miclbl">اضغط للتسجيل</div>
+          <div class="mic-hint">يترجم صوتك فوراً</div>
+        </div>
+      </div>
+
+      <!-- LANGS -->
+      <div class="lg">
+        <div>
+          <label class="lbl">لغة المصدر</label>
+          <select id="srcL">
+            <option value="ar">🇸🇦 العربية</option>
+            <option value="en">🇺🇸 الإنجليزية</option>
+            <option value="fr">🇫🇷 الفرنسية</option>
+            <option value="es">🇪🇸 الإسبانية</option>
+            <option value="de">🇩🇪 الألمانية</option>
+            <option value="tr">🇹🇷 التركية</option>
+            <option value="hi">🇮🇳 الهندية</option>
+            <option value="zh">🇨🇳 الصينية</option>
+            <option value="ru">🇷🇺 الروسية</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">ترجمة إلى</label>
+          <select id="tgtL">
+            <option value="ar">🇸🇦 العربية</option>
+            <option value="en">🇺🇸 الإنجليزية</option>
+            <option value="fr">🇫🇷 الفرنسية</option>
+            <option value="es">🇪🇸 الإسبانية</option>
+            <option value="de">🇩🇪 الألمانية</option>
+            <option value="tr">🇹🇷 التركية</option>
+            <option value="hi">🇮🇳 الهندية</option>
+            <option value="zh">🇨🇳 الصينية</option>
+            <option value="ru">🇷🇴 الروسية</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-go" onclick="goStart()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        ابدأ الترجمة
+      </button>
+    </div>
+  </div>
+
+  <div class="status" id="stbar"><div class="spin"></div><span id="stmsg">جارٍ المعالجة...</span></div>
+
+  <div class="player" id="player">
+    <div class="vid-wrap" id="vidwrap"></div>
+    <div class="p-acts">
+      <button class="bsm" onclick="expSRT()">📄 SRT</button>
+      <button class="bsm" onclick="expTXT()">📝 نص</button>
+      <button class="bsm" onclick="cpAll()">📋 نسخ</button>
+      <button class="bsm" id="subBtn" onclick="togSubs()">🙈 إخفاء</button>
+    </div>
+  </div>
+
+  <div class="t-card" id="tcard">
+    <div class="t-head">
+      <div class="t-title"><div class="ldot" id="ldot"></div>النص والترجمة</div>
+      <button class="bsm" onclick="clrAll()">مسح</button>
+    </div>
+    <div class="t-list" id="tlist"><div class="t-empty" id="tempty">سيظهر النص هنا</div></div>
+  </div>
+
+</div>
+
+<!-- ████ TRANSCRIPT ████ -->
+<div class="pg" id="pg-tr">
+  <div class="card" style="margin-top:14px">
+    <div class="t-head">
+      <div class="t-title">كل الترجمات</div>
+      <button class="bsm" onclick="clrAll()">مسح الكل</button>
+    </div>
+    <div class="t-list" id="tlist2" style="max-height:none"><div class="t-empty">لا يوجد نص بعد</div></div>
+  </div>
+</div>
+
+<!-- ████ SETTINGS ████ -->
+<div class="pg" id="pg-st">
+  <div class="card" style="margin-top:14px">
+    <div class="s-row">
+      <div><div class="s-t">الترجمة على الشاشة</div><div class="s-d">تظهر فوق الفيديو</div></div>
+      <button class="tog on" id="togS" onclick="this.classList.toggle('on');SUBS=this.classList.contains('on')"></button>
+    </div>
+    <div class="s-row">
+      <div><div class="s-t">التعرف المستمر</div><div class="s-d">إعادة الاستماع تلقائياً</div></div>
+      <button class="tog on" id="togC" onclick="this.classList.toggle('on');CONT=this.classList.contains('on')"></button>
+    </div>
+  </div>
+  <div class="inst">
+    <div class="inst-icon">📱</div>
+    <div class="inst-t">أضفه للشاشة الرئيسية</div>
+    <div class="inst-d">يعمل مثل تطبيق حقيقي بعد التثبيت</div>
+    <div class="inst-steps">
+      <div class="inst-step"><div class="snum">1</div><div class="stxt">افتح الرابط في <strong>Safari</strong></div></div>
+      <div class="inst-step"><div class="snum">2</div><div class="stxt">اضغط زر <strong>المشاركة ⬆️</strong></div></div>
+      <div class="inst-step"><div class="snum">3</div><div class="stxt">اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong></div></div>
+      <div class="inst-step"><div class="snum">4</div><div class="stxt">اضغط <strong>إضافة</strong> ✅</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-btn on" id="nb-home" onclick="switchPg('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    الرئيسية
+  </button>
+  <button class="bnav-btn" id="nb-tr" onclick="switchPg('tr')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    الترجمات
+  </button>
+  <button class="bnav-btn" id="nb-st" onclick="switchPg('st')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    الإعدادات
+  </button>
+</nav>
+
+<!-- HIDDEN INPUTS -->
+<input type="file" id="fi-cam" accept="video/*" capture="environment" style="position:fixed;opacity:0;pointer-events:none;width:1px;height:1px" onchange="onFile(this)">
+<input type="file" id="fi-gal" accept="video/*,audio/*" style="position:fixed;opacity:0;pointer-events:none;width:1px;height:1px" onchange="onFile(this)">
+
+<div class="tbox" id="tbox"></div>
+
+<script>
+var CURTAB = 'video';
+var SUBS = true, CONT = true, MIC = false;
+var blobURL = null, ytId = null;
+var rec = null, mainVid = null;
+var rows = [], cache = {};
+
+/* ── PAGES ── */
+function switchPg(name) {
+  var pgs = document.querySelectorAll('.pg');
+  for (var i = 0; i < pgs.length; i++) pgs[i].classList.remove('on');
+  var nbs = document.querySelectorAll('.bnav-btn');
+  for (var i = 0; i < nbs.length; i++) nbs[i].classList.remove('on');
+  document.getElementById('pg-' + name).classList.add('on');
+  document.getElementById('nb-' + name).classList.add('on');
+}
+
+/* ── TABS ── */
+function switchTab(name) {
+  CURTAB = name;
+  var tabs = ['video', 'yt', 'mic'];
+  for (var i = 0; i < tabs.length; i++) {
+    document.getElementById('tb-' + tabs[i]).classList.remove('on');
+    document.getElementById('tpg-' + tabs[i]).classList.remove('on');
+  }
+  document.getElementById('tb-' + name).classList.add('on');
+  document.getElementById('tpg-' + name).classList.add('on');
+}
+
+/* ── FILE ── */
+function trigCam() { document.getElementById('fi-cam').click(); }
+function trigGal() { document.getElementById('fi-gal').click(); }
+
+function onFile(inp) {
+  var file = inp.files && inp.files[0];
+  if (!file) return;
+  var prog = document.getElementById('prog');
+  var progf = document.getElementById('progf');
+  prog.style.display = 'block';
+  progf.style.width = '0%';
+  var reader = new FileReader();
+  reader.onprogress = function(e) {
+    if (e.lengthComputable) progf.style.width = Math.round(e.loaded / e.total * 100) + '%';
+  };
+  reader.onload = function(e) {
+    progf.style.width = '100%';
+    setTimeout(function() { prog.style.display = 'none'; }, 500);
+    var blob = new Blob([e.target.result], { type: file.type || 'video/mp4' });
+    blobURL = URL.createObjectURL(blob);
+    var pv = document.getElementById('pvvid');
+    pv.src = blobURL;
+    document.getElementById('pvname').textContent = file.name;
+    document.getElementById('pvbox').style.display = 'block';
+    document.querySelector('.fzone').style.display = 'none';
+    document.querySelector('.pick-row').style.display = 'none';
+    toast('✅ ' + file.name, 'ok');
+  };
+  reader.onerror = function() { prog.style.display = 'none'; toast('❌ فشل التحميل', 'err'); };
+  reader.readAsArrayBuffer(file);
+}
+
+function resetVid() {
+  blobURL = null;
+  document.getElementById('pvvid').src = '';
+  document.getElementById('pvbox').style.display = 'none';
+  document.querySelector('.fzone').style.display = '';
+  document.querySelector('.pick-row').style.display = '';
+  document.getElementById('fi0').value = '';
+  document.getElementById('fi-cam').value = '';
+  document.getElementById('fi-gal').value = '';
+}
+
+/* ── YOUTUBE ── */
+function loadYT() {
+  var url = document.getElementById('yti').value.trim();
+  var m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|shorts\/)([^&?#
+]+)/);
+  if (!m) { toast('رابط غير صالح', 'err'); return; }
+  ytId = m[1];
+  toast('✅ تم التعرف على الفيديو', 'ok');
+}
+
+/* ── MIC ── */
+function toggleMic() {
+  MIC = !MIC;
+  var ring = document.getElementById('micring');
+  var lbl = document.getElementById('miclbl');
+  if (MIC) {
+    ring.classList.add('on');
+    lbl.textContent = '🔴 جارٍ التسجيل...';
+    showTCard();
+    startRec(null);
+  } else {
+    ring.classList.remove('on');
+    lbl.textContent = 'اضغط للتسجيل';
+    stopRec();
+  }
+}
+
+/* ── START ── */
+function goStart() {
+  if (CURTAB === 'video') {
+    if (!blobURL) { toast('اختر ملف فيديو أولاً', 'warn'); return; }
+    buildVideoPlayer();
+  } else if (CURTAB === 'yt') {
+    if (!ytId) { loadYT(); if (!ytId) { toast('أدخل رابط يوتيوب أولاً', 'warn'); return; } }
+    buildYTPlayer();
+  } else {
+    toggleMic();
+  }
+}
+
+function buildVideoPlayer() {
+  var w = document.getElementById('vidwrap');
+  w.innerHTML = '<video id="mv" controls playsinline webkit-playsinline style="width:100%;display:block;background:#000;max-height:240px"></video>' +
+    '<div class="sub-ov" id="subov"><span class="sub-t" id="subt"></span></div>';
+  mainVid = document.getElementById('mv');
+  mainVid.src = blobURL;
+  document.getElementById('player').classList.add('on');
+  showTCard();
+  mainVid.addEventListener('play', function() { startRec(mainVid); });
+  mainVid.addEventListener('pause', stopRec);
+  mainVid.addEventListener('ended', stopRec);
+  toast('▶️ شغّل الفيديو لبدء الترجمة', 'ok');
+}
+
+function buildYTPlayer() {
+  var tgt = document.getElementById('tgtL').value;
+  var w = document.getElementById('vidwrap');
+  w.innerHTML = '<iframe src="https://www.youtube.com/embed/' + ytId + '?cc_load_policy=1&cc_lang_pref=' + tgt + '&rel=0" allow="autoplay;encrypted-media" allowfullscreen style="width:100%;aspect-ratio:16/9;display:block;border:none"></iframe>';
+  document.getElementById('player').classList.add('on');
+  showTCard();
+  toast('✅ يوتيوب محمّل', 'ok');
+}
+
+function showTCard() {
+  document.getElementById('tcard').classList.add('on');
+  document.getElementById('ldot').style.display = 'block';
+}
+
+/* ── SPEECH ── */
+function startRec(vid) {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('افتح التطبيق في Safari للتعرف الصوتي', 'err'); return; }
+  stopRec();
+  rec = new SR();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = toLoc(document.getElementById('srcL').value);
+  var lastF = '';
+  rec.onresult = function(e) {
+    var intr = '', fin = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) {
+      var t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) fin += t; else intr += t;
+    }
+    var st = document.getElementById('subt');
+    if (st && SUBS && (intr || fin)) { st.style.display = 'inline-block'; st.textContent = intr || fin; }
+    if (fin && fin !== lastF) {
+      lastF = fin;
+      var src = document.getElementById('srcL').value;
+      var tgt = document.getElementById('tgtL').value;
+      var ts = vid ? vid.currentTime : Date.now() / 1000;
+      var ftxt = fin;
+      doTranslate(ftxt, src, tgt).then(function(tr) {
+        addRow(ts, ftxt, tr);
+        var st2 = document.getElementById('subt');
+        if (st2 && SUBS) {
+          st2.innerHTML = ftxt + (tr !== ftxt ? '<span class="sub-tr">' + tr + '</span>' : '');
+          st2.style.display = 'inline-block';
+        }
+      });
+    }
+  };
+  rec.onerror = function(e) { if (e.error !== 'no-speech' && e.error !== 'aborted') toast('خطأ: ' + e.error, 'err'); };
+  rec.onend = function() {
+    var active = MIC || (vid && !vid.paused && !vid.ended);
+    if (CONT && active) setTimeout(function() { if (rec) try { rec.start(); } catch(x) {} }, 400);
+    else document.getElementById('ldot').style.display = 'none';
+  };
+  try { rec.start(); } catch(e) {}
+}
+
+function stopRec() {
+  if (rec) { try { rec.abort(); } catch(e) {} rec = null; }
+  document.getElementById('ldot').style.display = 'none';
+}
+
+function toLoc(l) {
+  var m = {ar:'ar-SA',en:'en-US',fr:'fr-FR',es:'es-ES',de:'de-DE',tr:'tr-TR',hi:'hi-IN',zh:'zh-CN',ru:'ru-RU'};
+  return m[l] || l;
+}
+
+/* ── TRANSLATE ── */
+function doTranslate(text, src, tgt) {
+  if (!text.trim() || src === tgt) return Promise.resolve(text);
+  var k = src + '|' + tgt + '|' + text;
+  if (cache[k]) return Promise.resolve(cache[k]);
+  return fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + src + '|' + tgt)
+    .then(function(r) { return r.json(); })
+    .then(function(d) { var t = (d && d.responseData && d.responseData.translatedText) || text; cache[k] = t; return t; })
+    .catch(function() { return text; });
+}
+
+/* ── ROWS ── */
+function addRow(ts, orig, tran) {
+  rows.push({ts:ts, orig:orig, tran:tran});
+  document.getElementById('tempty').style.display = 'none';
+  ['tlist','tlist2'].forEach(function(id) {
+    var el = document.getElementById(id);
+    var empty = el.querySelector('.t-empty');
+    if (empty) empty.style.display = 'none';
+    var d = document.createElement('div');
+    d.className = 't-item';
+    d.onclick = (function(t){ return function(){ if(mainVid) mainVid.currentTime = t; }; })(ts);
+    d.innerHTML = '<span class="t-time">' + fmt(ts) + '</span><div><div class="t-orig">' + esc(orig) + '</div><div class="t-tran">' + esc(tran) + '</div></div>';
+    el.appendChild(d);
+    if (id === 'tlist') d.scrollIntoView({behavior:'smooth',block:'end'});
+  });
+}
+
+function clrAll() {
+  rows = [];
+  ['tlist','tlist2'].forEach(function(id){
+    document.getElementById(id).innerHTML = '<div class="t-empty">لا يوجد نص بعد</div>';
+  });
+  var st = document.getElementById('subt');
+  if (st) { st.textContent = ''; st.style.display = 'none'; }
+  toast('تم المسح', 'ok');
+}
+
+/* ── SUBS ── */
+function togSubs() {
+  SUBS = !SUBS;
+  var ov = document.getElementById('subov');
+  if (ov) ov.style.display = SUBS ? '' : 'none';
+  document.getElementById('subBtn').textContent = SUBS ? '🙈 إخفاء' : '👁️ إظهار';
+}
+
+/* ── EXPORT ── */
+function expSRT() {
+  if (!rows.length) { toast('لا يوجد نص', 'warn'); return; }
+  var s = rows.map(function(r,i){ return (i+1)+'
+'+srtT(r.ts)+' --> '+srtT(r.ts+4)+'
+'+r.tran+'
+'; }).join('
+');
+  dl('translation.srt', s); toast('✅ تم', 'ok');
+}
+function expTXT() {
+  if (!rows.length) { toast('لا يوجد نص', 'warn'); return; }
+  var s = rows.map(function(r){ return '['+fmt(r.ts)+'] '+r.orig+'
+→ '+r.tran; }).join('
+
+');
+  dl('translation.txt', s); toast('✅ تم', 'ok');
+}
+function cpAll() {
+  if (!rows.length) { toast('لا يوجد نص', 'warn'); return; }
+  var s = rows.map(function(r){ return r.tran; }).join('
+');
+  if (navigator.clipboard) navigator.clipboard.writeText(s).then(function(){ toast('✅ تم النسخ','ok'); });
+  else toast('النسخ غير مدعوم','err');
+}
+function dl(name, content) {
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content],{type:'text/plain;charset=utf-8'}));
+  a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+/* ── UTILS ── */
+function fmt(s){ return pad(Math.floor(s/60))+':'+pad(Math.floor(s%60)); }
+function pad(n){ return String(n).padStart(2,'0'); }
+function srtT(s){ var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=Math.floor(s%60),ms=Math.floor((s%1)*1000); return pad(h)+':'+pad(m)+':'+pad(sc)+','+String(ms).padStart(3,'0'); }
+function esc(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg, type) {
+  var c = document.getElementById('tbox');
+  var el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3200);
+}
+</script>
+</body>
+</html>
